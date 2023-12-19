@@ -1,0 +1,52 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
+public class CompanyName {
+
+
+    public Set<String> companyAdd() {
+        Set<String> code = new HashSet<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("/Users/xiaoyinle/IdeaProjects/HelloWorld/src/trade.csv"))) {
+            // データの読み取り
+
+            for (String line; (line = br.readLine()) != null; ) {
+                String[] data = line.split("\t");
+                if (data.length >= 5) {
+                    code.add(data[1]);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("読み取り失敗：読み取ったファイルが存在しない");
+        } catch (IOException ex) {
+            System.out.println("ファイルの読み込みが失敗しました");
+        }
+        return code;
+    }
+
+    public void nameCheckAdd() {
+        Set<String> code = companyAdd();
+        boolean firstLine = true;
+        try (BufferedReader br = new BufferedReader(new FileReader("/Users/xiaoyinle/IdeaProjects/HelloWorld/src/output.csv"))) {
+            String line;
+            // 读取数据行并创建Stock对象
+            while ((line = br.readLine()) != null) {
+                if (firstLine) {
+                    firstLine = false;
+                    continue; // 第一行をスキップする
+                }
+                String[] data = line.split("\t");
+                for (String codeItem : code) {
+                    if (codeItem.equals(data[0])) {
+                        Portfolio.getInstance().setCompanyName(codeItem, data[1]);
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            System.out.println("読み取ったファイル空白です");
+        }
+    }
+}
