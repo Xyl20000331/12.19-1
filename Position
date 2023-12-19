@@ -1,0 +1,85 @@
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.List;
+
+public class Position {
+    private String code;
+    String companyName;
+    long quantity;
+    BigDecimal unitPrice;
+    BigDecimal averageUnitPrice;
+    private BigDecimal profitAndLoss = BigDecimal.ZERO;
+
+    public void calcAvgPrice(long quantity, BigDecimal unitPrice) {
+        //平均取得単価を計算
+        BigDecimal oldValue = this.averageUnitPrice.multiply(new BigDecimal(this.quantity));
+        BigDecimal newValue = unitPrice.multiply(new BigDecimal(quantity));
+        this.averageUnitPrice = oldValue.add(newValue).divide(new BigDecimal(this.quantity).add(new BigDecimal(quantity)), RoundingMode.HALF_UP);
+        this.quantity += quantity;
+    }
+
+    public BigDecimal sellAvgPrice(long quantity, BigDecimal unitPrice) {
+        //実現損益を計算
+        this.quantity -= quantity;
+
+        this.profitAndLoss = this.profitAndLoss.add(unitPrice.subtract(this.averageUnitPrice).multiply(new BigDecimal(quantity)));
+
+        if (this.quantity == 0) {
+            this.averageUnitPrice = BigDecimal.ZERO;
+        }
+
+        return this.profitAndLoss;
+    }
+
+    public Position(String code, long quantity, BigDecimal unitPrice) {
+        this.code = code;
+        this.unitPrice = unitPrice;
+        this.averageUnitPrice = unitPrice;
+        this.quantity = quantity;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getCompanyName() {
+        String companyName = Portfolio.getInstance().getCompanyName(this.code);
+        return companyName;
+    }
+
+
+    public long getQuantity() {
+        return quantity;
+    }
+
+    public BigDecimal getAverageUnitPrice() {
+        return averageUnitPrice;
+    }
+
+    public BigDecimal getProfitAndLoss() {
+        return profitAndLoss;
+    }
+
+    public String getMarketValue() {
+        BigDecimal lastPrice = Portfolio.getInstance().getLastPrice(this.code);
+        if (lastPrice == null) {
+            return "-";
+        }
+
+        return new BigDecimal(this.quantity).multiply(lastPrice).toString();
+    }
+
+    public String getUnrealizedPAD() {
+        BigDecimal lastPrice = Portfolio.getInstance().getLastPrice(this.code);
+        if (lastPrice == null) {
+            return "-";
+        }
+
+        return new BigDecimal(this.quantity).multiply(lastPrice.subtract(this.averageUnitPrice)).toString();
+    }
+
+    public static void sortPositions(List<Position> positions) {
+        positions.sort(Comparator.comparing(Position::getCode));
+    }
+}
