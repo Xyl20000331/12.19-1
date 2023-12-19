@@ -1,0 +1,27 @@
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.util.List;
+
+public class PrintPosition {
+    public static void printPosition(List<Position> positions) {
+        final String dataFormat = "| %-4s | %-25s | %12s | %12s | %14s | %14s | %14s |";
+        System.out.println("|" + "=======================================================================================" + "|");
+        System.out.printf(dataFormat, "Code", "CompanyName", "Quantity", "Avg Price", "ProfitAndLoss", "Market Value", "Unrealized PAD");
+        System.out.println(" ");
+        System.out.println("|" + "------" + "+" + "--------------" + "+" + "--------------" + "+" + "----------------" + "+" + "----------------" + "+" + "----------------" + "|");
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
+        decimalFormat.setRoundingMode(RoundingMode.HALF_UP);
+        for (Position item : positions) {
+            System.out.printf(dataFormat + "\n",
+                    item.getCode(),
+                    (item.getCompanyName().length() <= 25) ? item.getCompanyName() : (item.getCompanyName().substring(0, 25 - 3) + "..."),
+                    item.getQuantity(),
+                    decimalFormat.format(item.getAverageUnitPrice()),
+                    decimalFormat.format(item.getProfitAndLoss()),
+                    (item.getMarketValue()),
+                    (item.getUnrealizedPAD())
+            );
+        }
+        System.out.println("=========================================================================================");
+    }
+}
