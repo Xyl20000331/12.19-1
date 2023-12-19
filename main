@@ -1,0 +1,91 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+public class Main {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        boolean menu = true;
+        String fileName = "/Users/xiaoyinle/IdeaProjects/HelloWorld/src/output.csv";
+        String tradeFileName = "/Users/xiaoyinle/IdeaProjects/HelloWorld/src/trade.csv";
+        System.out.println("株式取引管理システムを開始します。");
+
+        while (menu) {
+            System.out.println("操作するメニューを選んでください:");
+            System.out.println("　1. 銘柄マスタ一覧表示");
+            System.out.println("　2. 銘柄マスタ新規登録");
+            System.out.println("　3. 取引入力");
+            System.out.println("　4. 取引一覧の表示");
+            System.out.println("　5. ポジション表示");
+            System.out.println("　6. 値洗い");
+            System.out.println("　9. アプリケーションを終了する");
+
+            System.out.print("入力してください: ");
+            String choice = scanner.nextLine();
+
+            ReadTrade reader = new ReadTrade();
+            List<TradeStock> trades = new ArrayList<>();
+
+            switch (choice) {
+                case "1":
+                    System.out.println("「銘柄マスタ一覧表示」が選択されました。");
+                    NewMaster app = new NewMaster();
+                    app.master(fileName);
+                    break;
+                case "2":
+                    System.out.println("「銘柄マスタ新規登録」が選択されました。");
+                    ReadNewStock read = new ReadNewStock();
+                    read.readNewStock(fileName);
+                    break;
+                case "3":
+                    System.out.println("「取引入力」が選択されました。");
+
+                    trades = reader.read(tradeFileName);
+
+                    Portfolio.getInstance().clear();
+
+                    for (TradeStock trade : trades) {
+                        Portfolio.getInstance().update(trade);
+                    }
+
+                    NewTrade newTrade = new NewTrade();
+                    newTrade.tradeInput(fileName, tradeFileName, scanner);
+                    break;
+                case "4":
+                    System.out.println("「取引一覧の表示」が選択されました。");
+                    //　降順を引用
+                    SortTrades.sortTrades(trades);
+                    //　データの書き出しを引用
+                    PrintTrades.printTrades(trades);
+                    break;
+                case "5":
+                    System.out.println("「ポジション表示」が選択されました。");
+                    reader = new ReadTrade();
+                    trades = reader.read(tradeFileName);
+                    Portfolio.getInstance().clear();
+
+                    for (TradeStock trade : trades) {
+                        Portfolio.getInstance().update(trade);
+                    }
+                    CompanyName companyName = new CompanyName();
+                    companyName.nameCheckAdd();
+                    PrintPosition.printPosition(Portfolio.getInstance().getPositions());
+                    break;
+                case "6":
+                    System.out.println("录入最新价格。");
+                    InputLastPrice lastPriceInput = new InputLastPrice();
+                    lastPriceInput.lastPriceInput(tradeFileName, scanner);
+                    break;
+                case "9":
+                    System.out.println("アプリケーションを終了します。");
+                    menu = false;
+                    break;
+                default:
+                    System.out.println("\"" + choice + "\" に対応するメニューは存在しません。");
+                    break;
+            }
+        }
+        scanner.close();
+    }
+}
