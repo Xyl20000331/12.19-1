@@ -1,0 +1,65 @@
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class Portfolio {
+
+    private final Map<String, Position> positionMap = new HashMap<>();
+    private final Map<String, BigDecimal> lastPriceMap = new HashMap<>();
+    private final Map<String, String> companyName = new HashMap<>();
+    private static final Portfolio PORTFOLIO = new Portfolio();
+
+    public static Portfolio getInstance() {
+        return PORTFOLIO;
+    }
+
+    public void update(TradeStock trade) {
+        //一致するものを探す
+        if (positionMap.containsKey(trade.getCompanyCode())) {
+            Position position = positionMap.get(trade.getCompanyCode());
+            if (trade.tradeType == TradeType.BUY) {
+                position.calcAvgPrice(trade.quantity, trade.unitPrice);
+            } else {
+                position.sellAvgPrice(trade.quantity, trade.unitPrice);
+            }
+        } else {
+            //新しいポジションを作る
+            Position position = new Position(trade.companyCode, trade.quantity, trade.unitPrice);
+            positionMap.put(trade.companyCode, position);
+        }
+    }
+
+    public List<Position> getPositions() {
+        List<Position> lst = new ArrayList<>(positionMap.values());
+        Position.sortPositions(lst);
+        return lst;
+    }
+
+    public Position getPositionByCode(String code) {
+        return positionMap.get(code);
+    }
+
+    public void setLastPrice(String code, BigDecimal price) {
+        this.lastPriceMap.put(code, price);
+    }
+
+    public BigDecimal getLastPrice(String code) {
+        return this.lastPriceMap.get(code);
+    }
+
+    public void setCompanyName(String code, String name) {
+        this.companyName.put(code, name);
+    }
+
+    public String getCompanyName(String code) {
+        return this.companyName.get(code);
+    }
+
+    public void clear() {
+        //計算の重複をしないように
+        positionMap.clear();
+    }
+    
+}
