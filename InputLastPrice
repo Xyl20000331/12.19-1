@@ -1,0 +1,71 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.TreeSet;
+
+public class InputLastPrice {
+//    Set<String> csvCompanyCodes = new HashSet<>();
+
+    // 按照code排序
+    Set<String> csvCompanyCodes = new TreeSet<String>(new Comparator<String>() {
+        @Override
+        public int compare(String o1, String o2) {
+            return o1.compareTo(o2);//降序排列
+        }
+    });
+
+    public void lastPriceInput(String csvFilepath, Scanner scanner) {
+        // CSVファイルの中のcompanycodeを集合csvCompanyCodesに追加
+        try (BufferedReader csvReader = new BufferedReader(new FileReader(csvFilepath))) {
+            String line;
+            while ((line = csvReader.readLine()) != null) {
+                String[] data = line.split("\t");
+                if (data.length >= 1) {
+                    csvCompanyCodes.add(data[1]); // 添加到csvCompanyCodes集合中
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("読み取り失敗：ファイルが存在しません。");
+            return;
+        }
+
+
+        // step6
+        // 遍历全部股票，录入时价，并更新时价
+        for (String companyCode : csvCompanyCodes) {
+            BigDecimal unitPrice = getUnitPrice(scanner, companyCode);
+            Portfolio.getInstance().setLastPrice(companyCode, unitPrice);
+        }
+
+        System.out.println("取引入力成功");
+    }
+
+
+    // 単価の入力
+    private BigDecimal getUnitPrice(Scanner scanner, String companyCode) {
+        while (true) {
+            System.out.print(companyCode + " 時価> ");
+            String unitPriceInput = scanner.nextLine();
+
+            // 入力された値が九桁以下かをチェック
+            if (unitPriceInput.matches("^\\d{1,9}(\\.\\d{1,2})?$")) {
+                BigDecimal unitPrice = new BigDecimal(unitPriceInput);
+
+                if (unitPrice.compareTo(BigDecimal.ZERO) > 0) {
+                    unitPrice = unitPrice.setScale(2, RoundingMode.DOWN);
+//                    System.out.println("取引単価: " + unitPrice);
+                    return unitPrice;
+                } else {
+                    System.out.println("取引単価は正の数で入力してください。");
+                }
+            } else {
+                System.out.println("取引単価は九桁以下の数値で入力してください。");
+            }
+        }
+    }
+}
